@@ -1,0 +1,26 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+package craw;
+
+// 请求消息
+message CrawWithURLRequest  {
+  string url = 1;
+}
+
+// 响应消息
+message CrawWithURLResponse {
+  int32 code = 1;
+  string msg = 2;
+  string data = 3;
+}
+
+message Empty {}
+
+// 定义服务
+service CrawService {
+  // 定义一个方法来计算两个整数的和
+  rpc CrawWithURL (CrawWithURLRequest) returns (CrawWithURLResponse);
+
+  rpc T_KeepAlive ( google.protobuf.Empty) returns ( google.protobuf.Empty) {}
+}

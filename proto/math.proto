@@ -1,0 +1,23 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+package math;
+
+// 请求消息
+message AddRequest {
+  int32 num1 = 1;
+  int32 num2 = 2;
+}
+
+// 响应消息
+message AddResponse {
+  int32 result = 1;
+}
+message Empty {}
+
+// 定义服务
+service MathService {
+  // 定义一个方法来计算两个整数的和
+  rpc Add (AddRequest) returns (AddResponse);
+  rpc T_KeepAlive ( google.protobuf.Empty) returns ( google.protobuf.Empty) {}
+}

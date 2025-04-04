@@ -1,0 +1,9 @@
+server:
+  name: Crawl4AIServer
+  host: 127.0.0.1
+  port: 9011
+  protocol: http
+  language: python
+config:
+  temperature: 0
+cors_origins: [ "http://127.0.0.1:8082","http://localhost:8082","*" ]

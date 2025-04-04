@@ -1,0 +1,51 @@
+import { exit } from "std/env"
+
+let server_name = "Crawl4AIServer"
+
+fun remove_old(){
+    $rm -r build$ failed{
+        echo "[ignore] remove build failed"
+    }
+    $rm -r dist$failed{
+        echo "[ignore] remove dist failed"
+    }
+}
+fun build(){
+    $pyinstaller server.spec --clean$ failed{
+        echo "build failed"
+        exit(1)
+    }
+    $cp ./sgrid.yml ./dist/sgrid.yml$ failed{
+        echo "copy sgrid.yml failed"
+    }
+}
+
+fun release(){
+    $cd ./dist$ failed{
+        echo "cd failed"
+        exit(1)
+    }
+    $tar -zcvf "{server_name}".tar.gz ./*$ failed{
+        echo "tar failed"
+        exit(1)
+    }
+    $mv ./"{server_name}".tar.gz ../$ failed{
+        echo "mv failed"
+        exit(1)
+    }
+    $cd ../$ failed{
+        echo "cd failed"
+        exit(1)
+    }
+}
+
+main(args){
+    echo "start deploy source env"
+    $source .venv/bin/activate$failed{
+        echo "activate failed"
+        exit(1)
+    }
+    remove_old()
+    build()
+    release()
+}
