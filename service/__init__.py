@@ -5,7 +5,7 @@ import proto.math_pb2_grpc as math_pb2_grpc
 import proto.craw_pb2 as craw_pb2
 import proto.craw_pb2_grpc as craw_pb2_grpc
 from conf import log_craw, log_math
-from service.funcs import craw_with_url
+from service.craw import craw_instance
 
 
 # 实现 MathService 服务
@@ -33,9 +33,21 @@ class CrawService(craw_pb2_grpc.CrawServiceServicer):
         log_craw.info("CrawService >> T_KeepAlive called")
         return google_dot_protobuf_dot_empty__pb2.Empty()
 
-    async def CrawWithURL(self, request, context):
-        log_craw.info(f"craw with url >> {request.url}")
-        rsp = await craw_with_url(request.url)
-        log_craw.info(f"craw with url rsp >>  {rsp}")
-        context.set_code(grpc.StatusCode.OK)
-        return craw_pb2.CrawWithURLResponse(data=rsp, code=0, msg="ok")
+    def CrawWithURL(self, request, context):
+        try:
+            log_craw.info(f"craw with url >> {request.url}")
+            rsp = craw_instance.submit_and_wait(request_data={
+                "urls": request.url,
+            })
+            log_craw.info(f"craw with url rsp >>  {rsp}")
+            context.set_code(grpc.StatusCode.OK)
+            return craw_pb2.CrawWithURLResponse(data=rsp, code=0, msg="ok")
+        except Exception as e:
+            # Record exception information
+            log_craw.error(f"Error occurred while crawling with URL {request.url}: {e}")
+            # Set the gRPC status code to indicate an internal error
+            context.set_code(grpc.StatusCode.INTERNAL)
+            # Set an error message to be returned to the client
+            context.set_details(str(e))
+            # Return an empty response or a response indicating the error
+            return craw_pb2.CrawWithURLResponse(data=None, code=1, msg=str(e))
