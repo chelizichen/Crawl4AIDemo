@@ -6,6 +6,7 @@ package craw;
 // 请求消息
 message CrawWithURLRequest  {
   string url = 1;
+  string css_selector = 2;
 }
 
 // 响应消息

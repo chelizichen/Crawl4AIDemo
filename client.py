@@ -49,11 +49,12 @@ async def add_numbers(num1: int, num2: int):
 
 
 @app.get("/craw")
-async def add_numbers(request_url: str):
+async def add_numbers(request_url: str, css_selector: str = None):
     log_client.info("craw", request_url)
     # 创建 gRPC 请求
     request = craw_pb2.CrawWithURLRequest(
-        url=request_url
+        url=request_url,
+        css_selector=css_selector,
     )
     response = proxy_manager.invoke("craw", "CrawWithURL", request)
     return {

@@ -33,11 +33,13 @@ class CrawService(craw_pb2_grpc.CrawServiceServicer):
         log_craw.info("CrawService >> T_KeepAlive called")
         return google_dot_protobuf_dot_empty__pb2.Empty()
 
+    # css_selector:".content-left"
     def CrawWithURL(self, request, context):
         try:
             log_craw.info(f"craw with url >> {request.url}")
             rsp = craw_instance.submit_and_wait(request_data={
                 "urls": request.url,
+                "css_selector": request.css_selector,
             })
             log_craw.info(f"craw with url rsp >>  {rsp}")
             context.set_code(grpc.StatusCode.OK)
