@@ -3,10 +3,7 @@ import time
 
 import grpc
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
-
-from conf import sgrid_application
-
-log_keepalive = sgrid_application.create_logger("log_keepalive")
+from conf.logger_client import log_keepalive
 
 
 class Empty:
@@ -45,6 +42,7 @@ class ProxyManager:
         keep_alive_thread = threading.Thread(target=self.keep_alive)
         keep_alive_thread.daemon = True  # 设置为守护线程，主线程退出时该线程也会退出
         keep_alive_thread.start()
+        self.service_indices = {service_name: 0 for service_name in proxy_dict.keys()}
 
     # 每个 BaseGrpcConfig 的 conn 都是一个 grpc 连接，每个连接都要有一个grpc方法
     def keep_alive(self):
@@ -94,10 +92,16 @@ class ProxyManager:
         grpc_config = self.proxy_dict[service_name]
         if not grpc_config.service:
             raise Exception("service not found")
-        log_keepalive.info("grpc_config.stubs: %s", grpc_config.stubs[0])
-        method = getattr(grpc_config.stubs[0], method_name)
+        # 获取当前服务的索引
+        index = self.service_indices[service_name]
+        # 获取当前要使用的 stub
+        stub = grpc_config.stubs[index]
+        log_keepalive.info("grpc_config.stubs: %s", stub)
+        method = getattr(stub, method_name)
         if not method:
             raise Exception("method not found")
         rsp = method(req)
+        # 更新索引，实现轮询
+        self.service_indices[service_name] = (index + 1) % len(grpc_config.stubs)
         return rsp
 

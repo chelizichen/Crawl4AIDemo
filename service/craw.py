@@ -2,7 +2,7 @@
 import requests
 import time
 
-from conf import log_craw_service
+from conf.logger import log_craw_service
 
 
 # print("crawl4ai ==>", __version__)

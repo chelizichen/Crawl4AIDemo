@@ -1,9 +1,11 @@
 server:
   name: Crawl4AIServer
   host: 127.0.0.1
-  port: 9011
+  port: 14332
   protocol: http
   language: python
 config:
   temperature: 0
 cors_origins: [ "http://127.0.0.1:8082","http://localhost:8082","*" ]
+math_grpc_config: [ "localhost:14333" ]
+craw_grpc_config: [ "localhost:14333" ]

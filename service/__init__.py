@@ -4,7 +4,7 @@ import proto.math_pb2 as math_pb2
 import proto.math_pb2_grpc as math_pb2_grpc
 import proto.craw_pb2 as craw_pb2
 import proto.craw_pb2_grpc as craw_pb2_grpc
-from conf import log_craw, log_math
+from conf.logger import log_craw, log_math
 from service.craw import craw_instance
 
 

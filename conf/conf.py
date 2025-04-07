@@ -14,6 +14,7 @@ __process_index__ = "PROCESS_INDEX"
 
 class SgridConfig:
     config: Union[dict, None]
+    is_production = False
 
     def __init__(self, config_file="sgrid.yml"):
         self.config = None
@@ -37,6 +38,7 @@ class SgridConfig:
         if sgrid_conf:
             print(f"Sgrid-Python[{__conf__}] Prod", True)
             print("Sgrid-Python[conf]", sgrid_conf)
+            self.is_production = True
             try:
                 config = load(sgrid_conf, Loader=FullLoader)
                 self.config = config
@@ -68,14 +70,14 @@ class SgridConfig:
                 return default
         return current
 
-    def get_port(self):
+    def get_port(self, default=8080):
         port = os.environ.get("SGRID_TARGET_PORT")
         if port:
             print("load env port")
             return int(port)
         if self.config is not None:
             print("load config port")
-            return int(self.get("server.port", 8080))
+            return int(self.get("server.port", default))
         return 8080
 
 
@@ -83,7 +85,6 @@ class SgridApplication(SgridConfig):
 
     def __init__(self, config_file="sgrid.yml"):
         super().__init__(config_file)
-
 
     def get_server_name(self) -> str:
         return self.get("server.name")

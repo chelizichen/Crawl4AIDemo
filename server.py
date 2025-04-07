@@ -3,12 +3,12 @@ import asyncio
 import grpc
 import proto.math_pb2_grpc as math_pb2_grpc
 import proto.craw_pb2_grpc as craw_pb2_grpc
-from conf import log_app, sgrid_application
+from conf.logger import log_app, sgrid_application
 from service import MathService, CrawService
 
 
-async def serve():
-    port = sgrid_application.get_port()
+async def serve(port):
+    # port = sgrid_application.get_port()
     log_app.info(f"Starting server... to port {port}")
     # 创建一个 gRPC 服务器
     server = grpc.aio.server()
@@ -24,4 +24,4 @@ async def serve():
 
 
 if __name__ == '__main__':
-    asyncio.run(serve())
+    asyncio.run(serve(sgrid_application.get_port()))
