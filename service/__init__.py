@@ -40,7 +40,7 @@ class CrawService(craw_pb2_grpc.CrawServiceServicer):
             rsp = craw_instance.submit_and_wait(request_data={
                 "urls": request.url,
                 "css_selector": request.css_selector,
-            })
+            }, rsp_type=request.rsp_type)
             log_craw.info(f"craw with url rsp >>  {rsp}")
             context.set_code(grpc.StatusCode.OK)
             return craw_pb2.CrawWithURLResponse(data=rsp, code=0, msg="ok")

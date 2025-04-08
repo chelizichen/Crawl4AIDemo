@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+        "bs4>=0.0.2",
         #    "crawl4ai==0.3.8",
         #    "playwright>=1.47.0",
         #    "playwright-stealth>=1.0.6",

@@ -11,6 +11,7 @@ import proto.craw_pb2_grpc as craw_pb2_grpc
 from conf import sgrid_application
 from conf.keepalive import BaseGrpcConn, ProxyManager
 from conf.logger_client import log_client
+from bs4 import BeautifulSoup
 
 math_grpc_config = BaseGrpcConn(
     sgrid_application.get("math_grpc_config"),
@@ -49,14 +50,101 @@ async def add_numbers(num1: int, num2: int):
 
 
 @app.get("/craw")
-async def add_numbers(request_url: str, css_selector: str = None):
-    log_client.info("craw", request_url)
+async def craw_with_url(request_url: str, css_selector: str = None, rsp_type: str = None):
+    log_client.info("craw request_url %s | css_selector %s | rsp_type %s ", request_url, css_selector, rsp_type)
     # 创建 gRPC 请求
     request = craw_pb2.CrawWithURLRequest(
         url=request_url,
         css_selector=css_selector,
+        rsp_type=rsp_type,
     )
     response = proxy_manager.invoke("craw", "CrawWithURL", request)
+    return {
+        "result": response.data,
+        "code": response.code,
+        "msg": response.msg
+    }
+
+
+class FinancialData:
+    link: str
+    title: str
+    id: str
+    content: str
+    interpret: str
+
+    def __init__(self):
+        pass
+
+    def set_link(self, link: str):
+        if link.startswith("https://www.cls.cn"):
+            self.link = link
+        else:
+            self.link = "https://www.cls.cn" + link
+        self.id = link.split("/")[-1]
+
+    def set_title(self, title):
+        self.title = title
+
+    def set_content(self, content):
+        self.content = content
+
+    def set_interpret(self, interpret):
+        self.interpret = interpret
+
+    @staticmethod
+    def validate_tag(tag):
+        if tag.name != 'a':
+            return False
+        link = tag.attrs.get("href")
+        if link.startswith("/detail/") is False:
+            return False
+        link_id = link.split("/")[-1]
+        if link_id.isdigit() is False:
+            return False
+        return True
+
+
+@app.get("/craw1")
+async def craw_with_url1(request_url: str, css_selector: str = None, rsp_type: str = None):
+    log_client.info("craw request_url %s | css_selector %s | rsp_type %s ", request_url, css_selector, rsp_type)
+    # 创建 gRPC 请求
+    request = craw_pb2.CrawWithURLRequest(
+        url=request_url,
+        css_selector=css_selector,
+        rsp_type=rsp_type,
+    )
+    response = proxy_manager.invoke("craw", "CrawWithURL", request)
+    soup = BeautifulSoup(response.data, 'html.parser')
+    tags = soup.find_all(attrs={"rel": "noopener noreferrer"})
+    FinancialDatas = []
+    for i, tag in enumerate(tags, 1):
+
+        if FinancialData.validate_tag(tag) is False:
+            continue
+        log_client.info(f"   链接: {tag.get('href', '无')}")
+        log_client.info(f"\n{i}. 标签名称: {tag.name}")
+        log_client.info(f"   属性: {tag.attrs}")
+        log_client.info(f"   文本内容: {tag.text.strip() if tag.text else '无'}")
+
+        f = FinancialData()
+        f.set_link(tag.attrs.get("href"))
+        f.set_title(tag.text.strip())
+        FinancialDatas.append(f)
+    FinancialDatas = FinancialDatas[:5]
+    for f in FinancialDatas:
+        log_client.info("爬取的链接 %s", f.link)
+    for f in FinancialDatas:
+        req_data = craw_pb2.CrawWithURLRequest(
+            url=f.link,
+            css_selector="div.content-left",
+            rsp_type="markdown",
+        )
+        response = proxy_manager.invoke("craw", "CrawWithURL", req_data)
+        log_client.info("爬取的链接 %s", f.link)
+        log_client.debug("爬取的内容 %s", response.data)
+        f.set_content(response.data)
+
     return {
         "result": response.data,
         "code": response.code,

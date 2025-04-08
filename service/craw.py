@@ -1,23 +1,22 @@
 # from crawl4ai import AsyncWebCrawler, __version__
+# print("crawl4ai ==>", __version__)
+
 import requests
 import time
 
 from conf.logger import log_craw_service
 
 
-# print("crawl4ai ==>", __version__)
-
-
 class Crawl4AiService:
     def __init__(self, base_url: str = "http://127.0.0.1:11235"):
         self.base_url = base_url
 
-    def submit_and_wait(self, request_data: dict, timeout: int = 300) -> dict:
+    def submit_and_wait(self, request_data: dict, timeout: int = 300, rsp_type: str = "markdown") -> dict:
         # Submit crawl job
-        log_craw_service.info("request_data: %s | timeout %s", request_data, timeout)
+        log_craw_service.info("request_data: %s | timeout %s | rsp_type %s", request_data, timeout, rsp_type)
         response = requests.post(f"{self.base_url}/crawl", json=request_data,
                                  headers={"Authorization": "Bearer " + "Leecumulus21"})
-        log_craw_service.info("response %s", response)
+        log_craw_service.debug("response %s", response)
         task_id = response.json()["task_id"]
         log_craw_service.info("task_id %s", task_id)
         # Poll for result
@@ -29,8 +28,9 @@ class Crawl4AiService:
                                   headers={"Authorization": "Bearer " + "Leecumulus21"})
             status = result.json()
             if status["status"] == "completed":
-                log_craw_service.info("status %s", status['result']['markdown'])
-                return status['result']['markdown']
+                log_craw_service.debug("status %s", status['result']['markdown'])
+                log_craw_service.info("result keys %s", status['result'].keys())
+                return status['result'][rsp_type]
 
             time.sleep(2)
 
